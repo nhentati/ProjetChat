@@ -63,6 +63,8 @@ app.router.get('/:talkname', function (talkname) {
         }
         var http_code = 404;
         var content = { "content": "la page demandée n'existe pas" };
+
+        // recherche du contenu du permalink
         collectionTalk.find({permalink:talkname}).toArray(function(err, results) {
             if (results.length>0)
             {
@@ -79,9 +81,39 @@ app.router.get('/:talkname', function (talkname) {
                     content.content += html_messages;
                 }
                 content.content += "</ul>";
-                html = plates.bind(html,content);
-                self.res.writeHead(http_code,{'Content-Type': 'text/html;charset=utf-8'});
-                self.res.end(html,'utf-8');
+
+                // talk precedent - suivant
+                var precedent = "";
+                var suivant = "";
+                var navigation = { "navigation": "" };
+                collectionTalk.find({}, {sort: {_id: 1}}).toArray(function(err, resultats) {
+                    for (var i = 0; i < resultats.length; i++) {
+                        if(String(resultats[i]._id) == String(results[0]._id)) {
+                            if(resultats[i - 1]) {  
+                                precedent = resultats[i - 1];
+                            }
+                            if(resultats[i + 1]) {
+                                suivant = resultats[i + 1];
+                            }
+                            break;
+                        }
+
+                    }
+                    if (precedent != "") {
+                        navigation.navigation = '<a href="' + precedent.permalink + '">' + ' Precedent</a>';
+                        if (suivant != "") {
+                            navigation.navigation += ' | ';    
+                        }
+                    }
+                    if (suivant != "") {
+                        navigation.navigation += '<a href="' + suivant.permalink + '">' + ' Suivant</a>';
+                    }
+                    html = plates.bind(html,navigation);
+                    html = plates.bind(html,content);
+                    self.res.writeHead(http_code,{'Content-Type': 'text/html;charset=utf-8'});
+                    self.res.end(html,'utf-8');
+                    
+                });
             }
         });
     });
