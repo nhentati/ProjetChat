@@ -53,10 +53,8 @@
 
          <style type="text/css">
             body {
-                background-color : rgb(50,50,80);
-                color : white;
-                text-align : center;
-            }
+                background-color : #F8F8F8;
+                }
             #tchat {
                 background-color : white;
                 opacity : 0.8;
@@ -72,15 +70,35 @@
                 text-align:left;
                 color : rgb(40,40,40);
             }
+            #left{
+                float: left;
+                margin: 10px 20px;
+                width: 250px;
+                height : 500px;
+                border : 2px rgb(40,40,40) solid;
+                overflow : auto;
+              }
+              .permalinks {
+                font-weight: bold;
+                text-align: center;
+              }
+            #right{
+              float: left;
+              margin: 10px 50px;
+              width: 510px;
+              }
       </style>
     </head>
 
     <body>
+        <div id="left"></div>
+        <div id="right">
         <div id="tchat"></div>
-
+         <br /> 
         <form onsubmit="return (envoiMessage());">
             <b>Message : </b><input type="text" name="message" id="message" style="width:250px;" /> <input type="submit" value="Envoyer" />
         </form>
+        </div>
 
     </body>
 </html>

@@ -27,18 +27,32 @@ app.router.get('/', function () {
             self.res.writeHead(404);
             return self.res.end('index.html introuvable');
         }
-        //var content = { "content": "mon super TP à faire" };
-
-        //html = plates.bind(html,content);
-        //console.log("Le param html : " + html);
-        self.res.writeHead(200,{'Content-Type': 'text/html;charset=utf-8'});
-        self.res.end(html,'utf-8');
-
+        var left = { "left": "la page demandée n'existe pas" };
+        collectionTalk.find({}).toArray(function(err, results) {
+            if (results.length>0){
+                http_code= 200;
+                left.left = '<ul id="listePermalinks">';
+                var partial = '<li><a href="/talk/" class="permalink"></a></li>';
+                for (var i = 0; i < results.length; i++) {
+                    console.log(results[i].permalink);
+                    var map = plates.Map();
+                    map.where('class').is('permalink').use('permalink');
+                    map.where('href').is('/talk/').insert('permalink');
+                    var html_permalinks = plates.bind(partial,results[i],map);
+                    console.log(html_permalinks);
+                    left.left += html_permalinks;
+                }
+                left.left += "</ul>";
+                html = plates.bind(html,left);
+                self.res.writeHead(200,{'Content-Type': 'text/html;charset=utf-8'});
+                self.res.end(html,'utf-8');
+            }
+        });        
     });
 });
 
 
-app.router.get('/talk/:talkname', function (talkname) {
+app.router.get('/:talkname', function (talkname) {
     console.log("talk:"+talkname);
     var self = this ;
     fs.readFile('talk/index.html','utf-8', function (err, html) {
