@@ -21,26 +21,23 @@ app.use(flatiron.plugins.http, {
 app.router.get('/', function () {
     console.log("homepage");
     var self = this ;
+
     fs.readFile(__dirname + '/index.html','utf-8', function (err, html) {
 
         if (err) {
             self.res.writeHead(404);
             return self.res.end('index.html introuvable');
         }
+
         var left = { "left": "la page demandée n'existe pas" };
         collectionTalk.find({}).toArray(function(err, results) {
             if (results.length>0){
                 http_code= 200;
-                left.left = '<ul id="listePermalinks">';
+                left.left = '<span style="font-weight:bold;">Liste des permalinks</span>';
+                left.left += '<ul id="listePermalinks">';
                 var partial = '<li><a href="/talk/" class="permalink"></a></li>';
                 for (var i = 0; i < results.length; i++) {
-                    console.log(results[i].permalink);
-                    var map = plates.Map();
-                    map.where('class').is('permalink').use('permalink');
-                    map.where('href').is('/talk/').insert('permalink');
-                    var html_permalinks = plates.bind(partial,results[i],map);
-                    console.log(html_permalinks);
-                    left.left += html_permalinks;
+                    left.left += '<li><a href="/talk/' + results[i].permalink + '" class="permalink">' + results[i].permalink + '</a></li>';
                 }
                 left.left += "</ul>";
                 html = plates.bind(html,left);
@@ -52,7 +49,7 @@ app.router.get('/', function () {
 });
 
 
-app.router.get('/:talkname', function (talkname) {
+app.router.get('/talk/:talkname', function (talkname) {
     console.log("talk:"+talkname);
     var self = this ;
     fs.readFile('talk/index.html','utf-8', function (err, html) {
@@ -100,13 +97,13 @@ app.router.get('/:talkname', function (talkname) {
 
                     }
                     if (precedent != "") {
-                        navigation.navigation = '<a href="' + precedent.permalink + '">' + ' Precedent</a>';
+                        navigation.navigation = '<a href="' + precedent.permalink + '" class="permalink">' + ' Precedent</a>';
                         if (suivant != "") {
                             navigation.navigation += ' | ';    
                         }
                     }
                     if (suivant != "") {
-                        navigation.navigation += '<a href="' + suivant.permalink + '">' + ' Suivant</a>';
+                        navigation.navigation += '<a href="' + suivant.permalink + '" class="permalink">' + ' Suivant</a>';
                     }
                     html = plates.bind(html,navigation);
                     html = plates.bind(html,content);
@@ -193,11 +190,10 @@ io.sockets.on('connection', function(socket) {
                 }
 
                 // constitution du permalink
-                permalink = initiateur + "-" +  premierePhrase.split(' ').join('-');  
+                permalink = initiateur + "-" +  premierePhrase.split(' ').join('-').split('?').join('').split('&').join('-');  
 
                 // insertion en BDD
                 var donnee =    {   'permalink'  : permalink,
-                                    'initiateur' : initiateur,
                                     'premierePhrase' : premierePhrase,
                                     'messages' : messages
                                 };
