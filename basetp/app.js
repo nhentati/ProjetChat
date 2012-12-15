@@ -9,7 +9,7 @@ var Db = mongodb.Db,
     MongoServer = mongodb.Server;
 
 
-var clientDb = new Db('socket', new MongoServer("127.0.0.1", 27017, {}));
+var clientDb = new Db('bdd_projet_chat', new MongoServer("127.0.0.1", 27017, {auto_reconnect:true}));
 
 
 app.config.file({ file: path.join(__dirname, 'config', 'config.json') });
@@ -90,6 +90,7 @@ app.start(3000, function () {
 // Ces variables resteront durant toute la vie du seveur pour et sont commune pour chaque client (node server.js)
 // liste des messages de la forme { pseudo : 'Mon pseudo', message : 'Mon message' }
 var messages = [];
+var intervalle = 10000;
 
 var io = require('socket.io').listen(app.server);
 var collectionTalk = null;
@@ -113,11 +114,69 @@ io.sockets.on('connection', function(socket) {
 
      // On donne la liste des messages (evenement cree du cote client)
     socket.emit('recupererMessages', messages);
+
     // Quand on recoit un nouveau message
     socket.on('nouveauMessage', function (mess) {
         // On l'ajout au tableau (variable globale commune a tous les clients connectes au serveur)
         messages.push(mess);
         // On envoie a tout les clients connectes (sauf celui qui a appelle l'evenement) le nouveau message
-        socket.broadcast.emit('recupererNouveauMessage', mess);
+        socket.broadcast.emit('recupererNouveauMessage', mess);        
     });
+
+    setInterval(function(){
+        // recuperer le timeout actuel
+        var timeoutActuel = new Date().getTime();
+
+        if (messages.length > 0) {
+            // recuperer dernier message
+            var timeoutDernierMessage = messages[messages.length - 1].time;
+
+            // test si timeoutDernierMessage + intervalle < timeoutActuel => historique
+            if ((timeoutDernierMessage + intervalle) < timeoutActuel) {
+                console.log("historique......................................");
+
+                var initiateur = messages[0].pseudo;
+                var premierePhrase = "";
+                var permalink = "";
+
+                // Recuperation des 5 premiers mots de l'initiateur
+                for(var i = 0; i < messages.length; i++) {
+                    txt = messages[i];
+                    if(txt.pseudo == initiateur && txt.message.split(" ").length >= 5) {
+                        premierePhrase = txt.message;
+                        break;
+                    }
+                }
+
+                // s'il n'y a aucune phrase contenant 5 mots, on prend la premiere phrase + datetime
+                if(premierePhrase == "") {
+                    var dateCourante = new Date();
+                    premierePhrase = messages[0].message + "_" + dateCourante.getHours() + ":" + dateCourante.getMinutes();
+                }
+
+                // constitution du permalink
+                permalink = initiateur + "-" +  premierePhrase.replace(" ", "-");  
+
+                // insertion en BDD
+                var donnee =    {   'permalink'  : permalink,
+                                    'initiateur' : initiateur,
+                                    'premierePhrase' : premierePhrase,
+                                    'messages' : messages
+                                };
+
+                console.log(donnee);
+
+                clientDb.collection("talk", function(err, collection) {
+                    collection.insert(donnee);
+                });
+
+                // effacer le contenu de messages
+                messages = [];
+
+            }
+            //sinon rien a faire
+                
+            console.log("10 sec................................................");
+        }
+    }, intervalle);
 });

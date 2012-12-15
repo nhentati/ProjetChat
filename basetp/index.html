@@ -38,7 +38,7 @@
             var message = document.getElementById('message').value;
            
             // On appelle l'evenement se trouvant sur le serveur pour qu'il enregistre le message et qu'il l'envoie a tous les autres clients connectes (sauf nous)
-            socket.emit('nouveauMessage', { 'pseudo' : pseudo, 'message' : message });
+            socket.emit('nouveauMessage', { 'pseudo' : pseudo, 'message' : message, 'time' : new Date().getTime() });
 
             // On affiche directement notre message dans notre page
             document.getElementById('tchat').innerHTML += '<div class="line"><b>'+pseudo+'</b> : '+message+'</div>';
