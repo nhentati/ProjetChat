@@ -41,7 +41,7 @@ app.router.get('/', function () {
 app.router.get('/talk/:talkname', function (talkname) {
     console.log("talk:"+talkname);
     var self = this ;
-    fs.readFile(__dirname + '/index.html','utf-8', function (err, html) {
+    fs.readFile('talk/index.html','utf-8', function (err, html) {
 
         if (err) {
             self.res.writeHead(404);
@@ -49,35 +49,27 @@ app.router.get('/talk/:talkname', function (talkname) {
         }
         var http_code = 404;
         var content = { "content": "la page demandée n'existe pas" };
-        collectionTalk.find({name:talkname}).toArray(function(err, results) {
+        collectionTalk.find({permalink:talkname}).toArray(function(err, results) {
             if (results.length>0)
             {
                 http_code= 200;
-                content.content = '<ol id="talk">';
-                var partial = '<li><div class="time"></div><div class="pseudo"></div><div class="text"></div></li>';
-                for (var i = 0; i < results[0].line.length; i++) {
-                    console.log(results[0].line[i]);
-                    var mytime = { "pseudo": "Thu Nov 29 2012 16:29:00 GMT+0100 (CET)" };
+                content.content = '<ul id="talk">';
+                var partial = '<li><span class="pseudo"></span> : <span class="message"></span></li>';
+                for (var i = 0; i < results[0].messages.length; i++) {
+                    console.log(results[0].messages[i]);
                     var map = plates.Map();
-                    //console.log(map.where('class').is('pseudo'));
                     map.where('class').is('pseudo').use('pseudo');
-                    map.where('class').is('time').use('time');
-                    map.where('class').is('text').use('text');
-                    //var html_line = plates.bind(partial,results[0].line[i],map);
-                    var html_line = plates.bind(partial,results[0].line[i],map);
-                    console.log(html_line);
-                    content.content += html_line;
+                    map.where('class').is('message').use('message');
+                    var html_messages = plates.bind(partial,results[0].messages[i],map);
+                    console.log(html_messages);
+                    content.content += html_messages;
                 }
-                content.content += "</ol>";
+                content.content += "</ul>";
                 html = plates.bind(html,content);
-                //console.log(html);
                 self.res.writeHead(http_code,{'Content-Type': 'text/html;charset=utf-8'});
                 self.res.end(html,'utf-8');
-
-       //content = { "content":  };
             }
         });
-
     });
 });
 
@@ -151,11 +143,11 @@ io.sockets.on('connection', function(socket) {
                 // s'il n'y a aucune phrase contenant 5 mots, on prend la premiere phrase + datetime
                 if(premierePhrase == "") {
                     var dateCourante = new Date();
-                    premierePhrase = messages[0].message + "_" + dateCourante.getHours() + ":" + dateCourante.getMinutes();
+                    premierePhrase = messages[0].message + "_" + dateCourante.getHours() + "h" + dateCourante.getMinutes() + "min";
                 }
 
                 // constitution du permalink
-                permalink = initiateur + "-" +  premierePhrase.replace(" ", "-");  
+                permalink = initiateur + "-" +  premierePhrase.split(' ').join('-');  
 
                 // insertion en BDD
                 var donnee =    {   'permalink'  : permalink,
