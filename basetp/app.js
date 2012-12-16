@@ -65,7 +65,8 @@ app.router.get('/talk/:talkname', function (talkname) {
             if (results.length>0)
             {
                 http_code= 200;
-                content.content = '<ul id="talk">';
+                content.content = 'Salon : ' + results[0].messages[0].salon;
+                content.content += '<ul id="talk">';
                 var partial = '<li><span class="pseudo"></span> : <span class="message"></span></li>';
                 for (var i = 0; i < results[0].messages.length; i++) {
                     console.log(results[0].messages[i]);
@@ -138,17 +139,7 @@ clientDb.open(function(err, client) {
 });
 
 io.sockets.on('connection', function(socket) {
-    // socket.on('login', function(data) {
-    //     if (data.pseudo)
-    //     {
-    //         console.log("nouveau chatteur:"+data.pseudo)
-    //     }else
-    //     {
-    //         console.log("pas de pseudo!");
-    //     }
-    // });
-
-     // On donne la liste des messages (evenement cree du cote client)
+    // On donne la liste des messages (evenement cree du cote client)
     socket.emit('recupererMessages', messages);
 
     // Quand on recoit un nouveau message
@@ -220,8 +211,6 @@ io.sockets.on('connection', function(socket) {
 
             }
             //sinon rien a faire
-                
-            console.log("10 sec................................................");
         }
     }, intervalle);
 });

@@ -27,58 +27,13 @@
             }
       </style>
 
-      <script type="text/javascript">
-          function getURLParameters(paramName) 
-          {
-              var sURL = window.document.URL.toString();  
-              if (sURL.indexOf("?") > 0)
-              {
-                 var arrParams = sURL.split("?");         
-                 var arrURLParams = arrParams[1].split("&");      
-                 var arrParamNames = new Array(arrURLParams.length);
-                 var arrParamValues = new Array(arrURLParams.length);     
-                 var i = 0;
-                 for (i=0;i<arrURLParams.length;i++)
-                 {
-                    var sParam =  arrURLParams[i].split("=");
-                    arrParamNames[i] = sParam[0];
-                    if (sParam[1] != "")
-                        arrParamValues[i] = unescape(sParam[1]);
-                    else
-                        arrParamValues[i] = "No Value";
-                 }
-
-                 for (i=0;i<arrURLParams.length;i++)
-                 {
-                    if(arrParamNames[i] == paramName) {
-                        return arrParamValues[i];
-                    }
-                 }
-              }
-
-              return "";
-          }
-      </script>
+     
     </head>
 
     <body>
-      <div id="banniere"></div>
+      <div id="banniere"><a href="/"><img src="./images/talk-to-me.jpg" alt="Logo talk to me" /></a></div>
       <div id="content" ></div>
-      <div id="navigation">lkfjsmlfjsdm</div>
-
-      <script type="text/javascript">
-        document.getElementById('banniere').innerHTML = '<a href="/?pseudo='+getURLParameters("pseudo")+'"> <img src="./images/talk-to-me.jpg" alt="Logo talk to me" /> </a>';
-
-        if (getURLParameters("pseudo") != "") {
-            var tblPermalinks = document.getElementsByClassName("permalink");
-            if (tblPermalinks != null && tblPermalinks.length > 0) {
-              var taille = tblPermalinks.length;
-              for (var i=0; i < taille; i++) {
-                tblPermalinks[i].setAttribute("href", tblPermalinks[i].getAttribute("href")+"?pseudo="+getURLParameters("pseudo"));
-              }
-            }
-          }
-      </script>
+      <div id="navigation"></div>
 
     </body>
 </html>
