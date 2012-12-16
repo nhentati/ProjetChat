@@ -35,7 +35,6 @@ app.router.get('/', function () {
                 http_code= 200;
                 left.left = '<span style="font-weight:bold;">Liste des permalinks</span>';
                 left.left += '<ul id="listePermalinks">';
-                var partial = '<li><a href="/talk/" class="permalink"></a></li>';
                 for (var i = 0; i < results.length; i++) {
                     left.left += '<li><a href="/talk/' + results[i].permalink + '" class="permalink">' + results[i].permalink + '</a></li>';
                 }
