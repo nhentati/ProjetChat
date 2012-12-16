@@ -8,7 +8,6 @@
         <script type="text/javascript">
           var salon = "Principal";
           var tableauSalon = [];
-          tableauSalon.push(salon);
           
           function getURLParameters(paramName) 
           {
@@ -57,7 +56,6 @@
 
           // On creer l'evenement recupererMessages pour recuperer direcement les messages sur serveur
           socket.on('recupererMessages', function (messages) {
-            console.log(" **********Recupmessage----------------\n"+ salon);
             // messages est le tableau contenant tous les messages qui ont ete ecris sur le serveur
             var html = '';
             for (var i = 0; i < messages.length; i++) {
@@ -70,10 +68,21 @@
 
           // Si quelqu'un a poste un message, le serveur nous envoie son message avec l'evenement recupererNouveauMessage
           socket.on('recupererNouveauMessage', function (message) {
-            console.log("------------RecupNouveau message----------------\n"+ salon );
             if (message.salon == salon) {
               document.getElementById('tchat').innerHTML += '<div class="line"><b>'+message.pseudo+'</b> : '+message.message+'</div>';
             }            
+          });
+
+          socket.on('recupererSalons', function (salons) {
+            var contenu = '';
+            contenu += '<ul id="salonsListe">';
+            tableauSalon = [];
+            for (var i = 0; i < salons.length; i++) {
+              tableauSalon.push(salons[i].salon);
+              contenu += '<li><a href="#'+fomraterUrlSalon(salons[i].salon)+'" class="permalink" onclick="changerSalon(\''+salons[i].salon+'\')">' + salons[i].salon + '</a></li>';
+            }
+            contenu += '</ul>';
+            $("#listeSalon").html(contenu);       
           });
 
           // Quand on veut envoyer un message (quand il a valider le formulaire)
@@ -101,24 +110,28 @@
               $("#nomSalon").html(salon);
               $("#tchat").html("");
               listerSalon();
+              socket.emit('nouveauSalon', {'salon' : salon});
             }
           }
           function changerSalon(nomSalon){
             salon = nomSalon;
-             $("#nomSalon").html(salon);    
+            $("#nomSalon").html(salon);    
+            $("#tchat").html("");    
           }
 
           function listerSalon() {
             var contenu = '';
             contenu += '<ul id="salonsListe">';
             for (var i = 0; i < tableauSalon.length; i++) {
-              contenu += '<li><a href="#" class="permalink" onclick="changerSalon(\''+tableauSalon[i]+'\')">' + tableauSalon[i] + '</a></li>';
+              contenu += '<li><a href="#'+fomraterUrlSalon(tableauSalon[i])+'" class="permalink" onclick="changerSalon(\''+tableauSalon[i]+'\')">' + tableauSalon[i] + '</a></li>';
             }
             contenu += '</ul>';
             $("#listeSalon").html(contenu);
           }
 
-
+          function fomraterUrlSalon(nomSalon) {
+            return nomSalon.split(' ').join('-').split('?').join('').split('&').join('-').split('#').join('-');
+          }
         </script>
 
         <script type="text/javascript">
@@ -129,9 +142,12 @@
         </script>
 
          <style type="text/css">
-            body {
+            body { 
+                font-family:Lucida Sans, Lucida Sans Unicode, Arial, Sans-Serif; 
+                font-size:13px; 
+                margin:0px auto; 
                 background-color : #F8F8F8;
-                }
+            }
             #tchat {
                 background-color : white;
                 opacity : 0.8;
@@ -188,9 +204,9 @@
 
         <div id="right">
           <div id="creationSalon">
-            <a href="javascript:void(0);" onclick="creerSalon();">Nouveau salon</a>
+            Salon courant : <span id="nomSalon"></span>
             <br />
-            Courant : <span id="nomSalon"></span>
+            <a href="javascript:void(0);" onclick="creerSalon();">Nouveau salon</a>
             <br />
             <span style="font-weight:bold;">Liste des salons</span>
           </div>

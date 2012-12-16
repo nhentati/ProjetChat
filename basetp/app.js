@@ -125,6 +125,8 @@ app.start(3000, function () {
 // liste des messages de la forme { pseudo : 'Mon pseudo', message : 'Mon message' }
 var messages = [];
 var intervalle = 10000;
+var salons = [];
+salons.push({'salon' : 'Principal'});
 
 var io = require('socket.io').listen(app.server);
 var collectionTalk = null;
@@ -155,6 +157,16 @@ io.sockets.on('connection', function(socket) {
         messages.push(mess);
         // On envoie a tout les clients connectes (sauf celui qui a appelle l'evenement) le nouveau message
         socket.broadcast.emit('recupererNouveauMessage', mess);        
+    });
+
+    socket.emit('recupererSalons', salons);
+
+    // Quand on cree un nouveau salon
+    socket.on('nouveauSalon', function (salon) {
+        // On l'ajout au tableau (variable globale commune a tous les clients connectes au serveur)
+        salons.push(salon);
+        // On envoie a tout les clients connectes (sauf celui qui a appelle l'evenement) les salons
+        socket.broadcast.emit('recupererSalons', salons);        
     });
 
     setInterval(function(){
@@ -189,7 +201,7 @@ io.sockets.on('connection', function(socket) {
                 }
 
                 // constitution du permalink
-                permalink = initiateur + "-" +  premierePhrase.split(' ').join('-').split('?').join('').split('&').join('-');  
+                permalink = initiateur + "-" +  premierePhrase.split(' ').join('-').split('?').join('').split('&').join('-').split('#').join('-');  
 
                 // insertion en BDD
                 var donnee =    {   'permalink'  : permalink,

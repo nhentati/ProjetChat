@@ -17,7 +17,7 @@
             #documents { margin:0; padding:0;}        
             #wrapper { width:700px; margin-top:20px;}
         </style>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
 	<script>
     $(document).ready(function() {
         //ajout tab on click
@@ -61,7 +61,7 @@
 
     // If tab already exist in the list, return
     if ($("#" + $(link).attr("rel")).length != 0)
-    return;
+    return false;
     
         // if there is no current tab and if there are still tabs left, show the first one
     if ($("#tabs li.current").length == 0 && $("#tabs li").length > 0) {
