@@ -125,9 +125,10 @@ app.start(3000, function () {
 // Ces variables resteront durant toute la vie du seveur pour et sont commune pour chaque client (node server.js)
 // liste des messages de la forme { pseudo : 'Mon pseudo', message : 'Mon message' }
 var messages = [];
-var intervalle = 10000;
+var intervalle = 300000;
 var salons = [];
 salons.push({'salon' : 'Principal'});
+var intervalleTwits = 20000;
 
 var io = require('socket.io').listen(app.server);
 var collectionTalk = null;
@@ -213,4 +214,50 @@ io.sockets.on('connection', function(socket) {
             //sinon rien a faire
         }
     }, intervalle);
+
+    // recuperation des twits aleatoirement sur un salon pris aléatoirement
+    setInterval(function() {
+        if (salons.length > 1) {
+            var randomIndex = Math.floor(Math.random() * salons.length);
+            if (salons[randomIndex].salon != "" && salons[randomIndex].salon != "Principal") {
+                console.log("Random salon : " + salons[randomIndex].salon);
+                var http = require('http');
+                var motRecherche = salons[randomIndex].salon;
+
+                var options = {
+                    host: 'search.twitter.com',
+                    port: 80,
+                    path: '/search.json?q='+motRecherche
+                };
+
+                var resultatTwitter = [];
+                var twits = [];
+
+                var req = http.request(options, function(res) {
+                    res.setEncoding('utf8');
+                    res.on('data', function (chunk) {
+                        resultatTwitter.push(chunk);
+                    });
+
+                    res.on('end', function() {
+                        if (resultatTwitter.length > 0) {
+                            twits = JSON.parse(resultatTwitter.join('')).results;
+                            var indice = Math.floor(Math.random() * twits.length);
+                            console.log("Affichage dans la méthode :" + twits[indice].from_user +" : "+twits[indice].text);
+                            var mess = { 'pseudo' : twits[indice].from_user, 'message' : twits[indice].text, 'time' : new Date().getTime(), 'salon' : motRecherche };
+                            messages.push(mess);
+                            socket.broadcast.emit('recupererNouveauMessage', mess); 
+                        }
+                    });
+                });
+
+                req.on('error', function(e) {
+                    console.log('problem with request: ' + e.message);
+                });
+
+                req.end();
+            }    
+        }
+    }, intervalleTwits);
+
 });
